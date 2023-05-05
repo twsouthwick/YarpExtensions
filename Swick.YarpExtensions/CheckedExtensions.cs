@@ -55,9 +55,16 @@ public static class CheckedExtensions
             var resultContext = new DefaultHttpContext(new RequestForwarderFeatures(context));
             var error = await _forwarder.SendAsync(resultContext, metadata.Destination, _client);
 
+            var stream = new MemoryStream();
+            var current = context.Response.Body;
+            context.Response.Body = stream;
+
             await _next(context);
 
             await metadata.Comparer.CompareAsync(context, resultContext, error);
+
+            stream.Position = 0;
+            await stream.CopyToAsync(current);
         }
 
         public void Dispose()

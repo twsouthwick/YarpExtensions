@@ -22,15 +22,7 @@ app.UseCheckedForwarder();
 
 app.MapGet("/d", () => "here");
 
-app.MapGet("/", () => "Hello")
-    .WithCheckedYarp("http://localhost:5276", new ResultComparer());
+app.Map("/", () => "Hello world!")
+    .WithCheckedYarp("http://localhost:5276", new HttpContextDiffer());
 
 app.Run();
-
-class ResultComparer : ICheckedYarpComparer
-{
-    public ValueTask CompareAsync(HttpContext local, HttpContext yarp)
-    {
-        return ValueTask.CompletedTask;
-    }
-}

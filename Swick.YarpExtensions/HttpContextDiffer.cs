@@ -23,9 +23,18 @@ public class HttpContextDiffer : ICheckedYarpComparer
             }
             else
             {
+                CompareStatus(logger, local, yarp);
                 CompareHeaders(logger, local, yarp);
                 await CompareBody(logger, local, yarp);
             }
+        }
+    }
+
+    private static void CompareStatus(ILogger logger, HttpContext local, HttpContext yarp)
+    {
+        if (local.Response.StatusCode != yarp.Response.StatusCode)
+        {
+            logger.LogWarning("Status code for YARP {YarpStatus} is not the same as local {LocalStatus}", local.Response.StatusCode, yarp.Response.StatusCode);
         }
     }
 

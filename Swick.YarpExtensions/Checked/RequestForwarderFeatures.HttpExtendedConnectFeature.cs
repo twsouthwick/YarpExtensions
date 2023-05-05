@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.Features;
-
-namespace YarpCheckedRuns;
+﻿namespace Swick.YarpExtensions.Checked;
 
 partial class RequestForwarderFeatures : IHttpExtendedConnectFeature
 {
-    private IHttpExtendedConnectFeature GetExtendedConnectFeature() => _other.Get<IHttpExtendedConnectFeature>()!;
+    private IHttpExtendedConnectFeature GetExtendedConnectFeature() => GetFeature<IHttpExtendedConnectFeature>()!;
 
     bool IHttpExtendedConnectFeature.IsExtendedConnect => GetExtendedConnectFeature().IsExtendedConnect;
 

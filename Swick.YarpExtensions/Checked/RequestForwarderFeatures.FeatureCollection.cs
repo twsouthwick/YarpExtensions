@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Http.Features;
-using System.Collections;
-using System.Net;
+﻿using System.Collections;
 
-namespace YarpCheckedRuns;
+namespace Swick.YarpExtensions.Checked;
 
 public partial class RequestForwarderFeatures : IFeatureCollection
 {

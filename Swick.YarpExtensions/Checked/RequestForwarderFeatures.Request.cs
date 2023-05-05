@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.Features;
-using System.Net;
-
-namespace YarpCheckedRuns;
+﻿namespace Swick.YarpExtensions.Checked;
 
 partial class RequestForwarderFeatures : IHttpRequestFeature
 {
-    private IHttpRequestFeature GetRequest() => _other.Get<IHttpRequestFeature>()!;
+    private IHttpRequestFeature GetRequest() => GetFeature<IHttpRequestFeature>()!;
 
     string IHttpRequestFeature.Protocol
     {

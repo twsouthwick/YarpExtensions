@@ -2,11 +2,13 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace YarpCheckedRuns;
+namespace Swick.YarpExtensions;
 
 internal sealed class ReadOnlyHeaderDictionary : IHeaderDictionary
 {
     private readonly IHeaderDictionary _other;
+
+    public static IHeaderDictionary Empty = new ReadOnlyHeaderDictionary(new HeaderDictionary());
 
     public ReadOnlyHeaderDictionary(IHeaderDictionary other)
     {

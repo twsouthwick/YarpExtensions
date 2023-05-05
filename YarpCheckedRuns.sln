@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YarpCheckedRuns", "YarpChec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Downstream", "Downstream\Downstream.csproj", "{39137E2B-E435-434F-B7BE-85577088699C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Swick.YarpExtensions", "Swick.YarpExtensions\Swick.YarpExtensions.csproj", "{5640C65D-DB66-4B5A-95A5-9098C57C6C2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{39137E2B-E435-434F-B7BE-85577088699C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39137E2B-E435-434F-B7BE-85577088699C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39137E2B-E435-434F-B7BE-85577088699C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5640C65D-DB66-4B5A-95A5-9098C57C6C2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5640C65D-DB66-4B5A-95A5-9098C57C6C2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5640C65D-DB66-4B5A-95A5-9098C57C6C2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5640C65D-DB66-4B5A-95A5-9098C57C6C2A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

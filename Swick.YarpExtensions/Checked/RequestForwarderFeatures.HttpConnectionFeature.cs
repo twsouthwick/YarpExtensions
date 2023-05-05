@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Http.Features;
-using System.Collections;
-using System.Net;
+﻿using System.Net;
 
-namespace YarpCheckedRuns;
+namespace Swick.YarpExtensions.Checked;
 
 partial class RequestForwarderFeatures :
     Microsoft.AspNetCore.Http.Features.IHttpConnectionFeature
 {
-    private IHttpConnectionFeature GetConnectionFeature() => _other.Get<IHttpConnectionFeature>()!;
+    private IHttpConnectionFeature GetConnectionFeature() => GetFeature<IHttpConnectionFeature>()!;
 
     string IHttpConnectionFeature.ConnectionId
     {

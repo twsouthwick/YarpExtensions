@@ -1,6 +1,6 @@
 ﻿namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures : IHttpRequestFeature
+partial class CheckedRequestForwarderFeatures : IHttpRequestFeature
 {
     private FeatureReference<IHttpRequestFeature> _request = FeatureReference<IHttpRequestFeature>.Default;
     private IHeaderDictionary? _requestHeaders;

@@ -1,12 +1,12 @@
 ﻿namespace Swick.YarpExtensions.Checked;
 
-internal sealed partial class RequestForwarderFeatures : IDisposable, IHttpRequestLifetimeFeature
+internal sealed partial class CheckedRequestForwarderFeatures : IDisposable, IHttpRequestLifetimeFeature
 {
     private readonly CancellationTokenSource _cts;
     private readonly IFeatureCollection _other;
     private readonly Stream _responseStream;
 
-    public RequestForwarderFeatures(HttpContext context)
+    public CheckedRequestForwarderFeatures(HttpContext context)
     {
         _other = context.Features;
         _cts = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);

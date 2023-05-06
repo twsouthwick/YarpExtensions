@@ -2,9 +2,9 @@
 
 namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures : IFeatureCollection
+partial class CheckedRequestForwarderFeatures : IFeatureCollection
 {
-    private static readonly HashSet<Type> _supportedFeatures = typeof(RequestForwarderFeatures)
+    private static readonly HashSet<Type> _supportedFeatures = typeof(CheckedRequestForwarderFeatures)
         .GetType()
         .GetInterfaces()
         .Where(t => t != typeof(IFeatureCollection))

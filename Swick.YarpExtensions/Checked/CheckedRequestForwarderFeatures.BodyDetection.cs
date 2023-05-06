@@ -1,6 +1,6 @@
 ﻿namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures : IHttpRequestBodyDetectionFeature
+partial class CheckedRequestForwarderFeatures : IHttpRequestBodyDetectionFeature
 {
     bool IHttpRequestBodyDetectionFeature.CanHaveBody => GetFeature<IHttpRequestBodyDetectionFeature>()!.CanHaveBody;
 }

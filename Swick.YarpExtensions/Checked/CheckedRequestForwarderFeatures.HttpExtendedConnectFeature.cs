@@ -1,6 +1,6 @@
 ﻿namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures : IHttpExtendedConnectFeature
+partial class CheckedRequestForwarderFeatures : IHttpExtendedConnectFeature
 {
     bool IHttpExtendedConnectFeature.IsExtendedConnect => GetFeature<IHttpExtendedConnectFeature>().IsExtendedConnect;
 

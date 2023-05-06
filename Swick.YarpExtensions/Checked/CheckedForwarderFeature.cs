@@ -1,4 +1,5 @@
-﻿using Yarp.ReverseProxy.Forwarder;
+﻿using Swick.YarpExtensions.Features;
+using Yarp.ReverseProxy.Forwarder;
 
 namespace Swick.YarpExtensions.Checked;
 
@@ -16,7 +17,7 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
         _forwarder = forwarder;
         _prefix = prefix;
 
-        var features = new RequestForwarderFeatures(mainRequest);
+        var features = new CheckedRequestForwarderFeatures(mainRequest);
         Context = new DefaultHttpContext(features);
 
         mainRequest.Response.RegisterForDispose(features);

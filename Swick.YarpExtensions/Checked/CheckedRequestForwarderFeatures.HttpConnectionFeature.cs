@@ -2,7 +2,7 @@
 
 namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures : IHttpConnectionFeature
+partial class CheckedRequestForwarderFeatures : IHttpConnectionFeature
 {
     string IHttpConnectionFeature.ConnectionId
     {

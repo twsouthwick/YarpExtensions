@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Swick.YarpExtensions.Checked;
+using Swick.YarpExtensions.Features;
 
 namespace Swick.YarpExtensions;
 
@@ -53,7 +54,7 @@ public static class CheckedExtensions
     }
 
     public static IEndpointConventionBuilder WithCheckedYarp(this IEndpointConventionBuilder builder, string destination)
-        => builder.WithMetadata(new CheckedYarpMetadata(destination));
+        => builder.WithMetadata(new CheckedForwarderMetadata(destination));
 
-    private static CheckedYarpMetadata? GetCheckedMetadata(this HttpContext context) => context.GetEndpoint()?.Metadata.GetMetadata<CheckedYarpMetadata>();
+    private static CheckedForwarderMetadata? GetCheckedMetadata(this HttpContext context) => context.GetEndpoint()?.Metadata.GetMetadata<CheckedForwarderMetadata>();
 }

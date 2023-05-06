@@ -1,6 +1,6 @@
 ﻿namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures : IHttpUpgradeFeature
+partial class CheckedRequestForwarderFeatures : IHttpUpgradeFeature
 {
     public bool IsUpgradableRequest => GetFeature<IHttpUpgradeFeature>().IsUpgradableRequest;
 

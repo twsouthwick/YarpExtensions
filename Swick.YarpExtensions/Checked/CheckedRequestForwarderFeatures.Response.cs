@@ -2,7 +2,7 @@
 
 namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures :
+partial class CheckedRequestForwarderFeatures :
     IHttpResponseBodyFeature,
     IHttpResponseFeature
 {

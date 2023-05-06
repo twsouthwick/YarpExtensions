@@ -1,6 +1,6 @@
 ﻿using Yarp.ReverseProxy.Forwarder;
 
-namespace Swick.YarpExtensions.Checked;
+namespace Swick.YarpExtensions.Features;
 
 public interface ICheckedForwarderFeature
 {

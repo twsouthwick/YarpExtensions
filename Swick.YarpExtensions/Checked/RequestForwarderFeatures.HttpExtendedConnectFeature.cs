@@ -2,13 +2,11 @@
 
 partial class RequestForwarderFeatures : IHttpExtendedConnectFeature
 {
-    private IHttpExtendedConnectFeature GetExtendedConnectFeature() => GetFeature<IHttpExtendedConnectFeature>()!;
+    bool IHttpExtendedConnectFeature.IsExtendedConnect => GetFeature<IHttpExtendedConnectFeature>().IsExtendedConnect;
 
-    bool IHttpExtendedConnectFeature.IsExtendedConnect => GetExtendedConnectFeature().IsExtendedConnect;
+    string? IHttpExtendedConnectFeature.Protocol => GetFeature<IHttpExtendedConnectFeature>().Protocol;
 
-    string? IHttpExtendedConnectFeature.Protocol => GetExtendedConnectFeature().Protocol;
-
-    ValueTask<Stream> IHttpExtendedConnectFeature.AcceptAsync() => GetExtendedConnectFeature().AcceptAsync();
+    ValueTask<Stream> IHttpExtendedConnectFeature.AcceptAsync() => GetFeature<IHttpExtendedConnectFeature>().AcceptAsync();
 
 }
 

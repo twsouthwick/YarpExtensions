@@ -1,9 +1,15 @@
-using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Net.Http.Headers;
 using Swick.YarpExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpForwarder();
+builder.Services.AddOptions<CheckedYarpOptions>()
+    .Configure(options =>
+    {
+        options.IgnoredHeaders.Add(HeaderNames.Server);
+        options.IgnoredHeaders.Add(HeaderNames.Date);
+    });
 
 var app = builder.Build();
 
@@ -23,6 +29,6 @@ app.UseCheckedForwarder();
 app.MapGet("/d", () => "here");
 
 app.Map("/", () => "Hello world!")
-    .WithCheckedYarp("http://localhost:5276", new HttpContextDiffer());
+    .WithCheckedYarp("http://localhost:5276");
 
 app.Run();

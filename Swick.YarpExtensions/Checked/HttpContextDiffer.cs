@@ -1,14 +1,18 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Buffers;
 using Yarp.ReverseProxy.Forwarder;
 
-namespace Swick.YarpExtensions;
+namespace Swick.YarpExtensions.Checked;
 
-public class HttpContextDiffer : ICheckedYarpComparer
+internal class HttpContextDiffer
 {
-    public HttpContextDiffer()
+    private readonly IOptions<CheckedYarpOptions> _options;
+
+    public HttpContextDiffer(IOptions<CheckedYarpOptions> options)
     {
+        _options = options;
     }
 
     public async ValueTask CompareAsync(HttpContext local, HttpContext yarp, ForwarderError error)
@@ -38,12 +42,17 @@ public class HttpContextDiffer : ICheckedYarpComparer
         }
     }
 
-    private static void CompareHeaders(ILogger logger, HttpContext local, HttpContext yarp)
+    private void CompareHeaders(ILogger logger, HttpContext local, HttpContext yarp)
     {
         var visited = new HashSet<string>();
 
         foreach (var (name, value) in local.Response.Headers)
         {
+            if (_options.Value.IgnoredHeaders.Contains(name))
+            {
+                continue;
+            }
+
             visited.Add(name);
 
             if (yarp.Response.Headers.TryGetValue(name, out var fromYarp))
@@ -59,11 +68,16 @@ public class HttpContextDiffer : ICheckedYarpComparer
             }
         }
 
-        foreach (var yarpHeader in yarp.Response.Headers)
+        foreach (var (name, _) in yarp.Response.Headers)
         {
-            if (!visited.Contains(yarpHeader.Key))
+            if (_options.Value.IgnoredHeaders.Contains(name))
             {
-                logger.LogWarning("YARP result contains '{HeaderName}' while local does not", yarpHeader.Key);
+                continue;
+            }
+
+            if (!visited.Contains(name))
+            {
+                logger.LogWarning("YARP result contains '{HeaderName}' while local does not", name);
             }
         }
     }

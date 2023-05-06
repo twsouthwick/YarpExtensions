@@ -2,38 +2,35 @@
 
 namespace Swick.YarpExtensions.Checked;
 
-partial class RequestForwarderFeatures :
-    Microsoft.AspNetCore.Http.Features.IHttpConnectionFeature
+partial class RequestForwarderFeatures : IHttpConnectionFeature
 {
-    private IHttpConnectionFeature GetConnectionFeature() => GetFeature<IHttpConnectionFeature>()!;
-
     string IHttpConnectionFeature.ConnectionId
     {
-        get => GetConnectionFeature().ConnectionId;
+        get => GetFeature<IHttpConnectionFeature>().ConnectionId;
         set => throw new NotImplementedException();
     }
 
     IPAddress? IHttpConnectionFeature.RemoteIpAddress
     {
-        get => GetConnectionFeature().RemoteIpAddress;
+        get => GetFeature<IHttpConnectionFeature>().RemoteIpAddress;
         set => throw new NotImplementedException();
     }
 
     IPAddress? IHttpConnectionFeature.LocalIpAddress
     {
-        get => GetConnectionFeature().LocalIpAddress;
+        get => GetFeature<IHttpConnectionFeature>().LocalIpAddress;
         set => throw new NotImplementedException();
     }
 
     int IHttpConnectionFeature.RemotePort
     {
-        get => GetConnectionFeature().RemotePort;
+        get => GetFeature<IHttpConnectionFeature>().RemotePort;
         set => throw new NotImplementedException();
     }
 
     int IHttpConnectionFeature.LocalPort
     {
-        get => GetConnectionFeature().LocalPort;
+        get => GetFeature<IHttpConnectionFeature>().LocalPort;
         set => throw new NotImplementedException();
     }
 }

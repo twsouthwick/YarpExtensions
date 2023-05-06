@@ -2,13 +2,11 @@
 
 partial class RequestForwarderFeatures : IHttpRequestLifetimeFeature
 {
-    private IHttpRequestLifetimeFeature GetLifetime() => GetFeature<IHttpRequestLifetimeFeature>()!;
-
     CancellationToken IHttpRequestLifetimeFeature.RequestAborted
     {
-        get => GetLifetime().RequestAborted;
+        get => GetFeature<IHttpRequestLifetimeFeature>().RequestAborted;
         set => throw new NotImplementedException();
     }
 
-    void IHttpRequestLifetimeFeature.Abort() => GetLifetime().Abort();
+    void IHttpRequestLifetimeFeature.Abort() => GetFeature<IHttpRequestLifetimeFeature>().Abort();
 }

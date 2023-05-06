@@ -2,24 +2,17 @@
 
 namespace Swick.YarpExtensions.Checked;
 
-public partial class RequestForwarderFeatures : IFeatureCollection
+internal partial class RequestForwarderFeatures : IFeatureCollection
 {
     private static readonly HashSet<Type> _supportedFeatures = typeof(RequestForwarderFeatures)
         .GetType()
         .GetInterfaces()
+        .Where(t => t != typeof(IFeatureCollection))
         .ToHashSet();
 
     object? IFeatureCollection.this[Type key]
     {
-        get
-        {
-            if (_supportedFeatures.Contains(key))
-            {
-                return this;
-            }
-
-            return null;
-        }
+        get => _supportedFeatures.Contains(key) ? this : default;
         set => throw new NotSupportedException();
     }
 
@@ -49,10 +42,7 @@ public partial class RequestForwarderFeatures : IFeatureCollection
     {
         foreach (var f in _supportedFeatures)
         {
-            if (((IFeatureCollection)this)[f] is { } value)
-            {
-                yield return new(f, value);
-            }
+            yield return new(f, this);
         }
     }
 

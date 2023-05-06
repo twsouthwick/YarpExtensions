@@ -2,7 +2,9 @@
 
 partial class RequestForwarderFeatures : IHttpRequestFeature
 {
-    private IHttpRequestFeature GetRequest() => GetFeature<IHttpRequestFeature>()!;
+    private FeatureReference<IHttpRequestFeature> _request = FeatureReference<IHttpRequestFeature>.Default;
+
+    private IHttpRequestFeature GetRequest() => _request.Fetch(_other)!;
 
     string IHttpRequestFeature.Protocol
     {

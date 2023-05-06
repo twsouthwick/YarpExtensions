@@ -2,9 +2,7 @@
 
 partial class RequestForwarderFeatures : IHttpUpgradeFeature
 {
-    private IHttpUpgradeFeature GetUpgrade() => GetFeature<IHttpUpgradeFeature>()!;
+    public bool IsUpgradableRequest => GetFeature<IHttpUpgradeFeature>().IsUpgradableRequest;
 
-    public bool IsUpgradableRequest => GetUpgrade().IsUpgradableRequest;
-
-    public Task<Stream> UpgradeAsync() => GetUpgrade().UpgradeAsync();
+    public Task<Stream> UpgradeAsync() => GetFeature<IHttpUpgradeFeature>().UpgradeAsync();
 }

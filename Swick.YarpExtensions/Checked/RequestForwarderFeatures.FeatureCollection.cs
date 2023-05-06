@@ -2,7 +2,7 @@
 
 namespace Swick.YarpExtensions.Checked;
 
-internal partial class RequestForwarderFeatures : IFeatureCollection
+partial class RequestForwarderFeatures : IFeatureCollection
 {
     private static readonly HashSet<Type> _supportedFeatures = typeof(RequestForwarderFeatures)
         .GetType()

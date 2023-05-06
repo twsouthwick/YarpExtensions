@@ -55,8 +55,13 @@ public static class CheckedExtensions
 
         private async Task InvokeForwarder(HttpContext context, CheckedYarpMetadata metadata)
         {
-            var resultContext = new DefaultHttpContext(new RequestForwarderFeatures(context));
+            context.Request.EnableBuffering();
+
+            var bodyPosition = context.Request.Body.Position;
+            using var features = new RequestForwarderFeatures(context);
+            var resultContext = new DefaultHttpContext(features);
             var error = await _forwarder.SendAsync(resultContext, metadata.Destination, _client);
+            context.Request.Body.Position = bodyPosition;
 
             // Buffer response stream so we can compare it
             using var stream = new BufferingReadWriteStream();

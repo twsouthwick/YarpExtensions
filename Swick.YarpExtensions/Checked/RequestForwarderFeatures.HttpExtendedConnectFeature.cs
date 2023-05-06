@@ -7,7 +7,6 @@ partial class RequestForwarderFeatures : IHttpExtendedConnectFeature
     string? IHttpExtendedConnectFeature.Protocol => GetFeature<IHttpExtendedConnectFeature>().Protocol;
 
     ValueTask<Stream> IHttpExtendedConnectFeature.AcceptAsync() => GetFeature<IHttpExtendedConnectFeature>().AcceptAsync();
-
 }
 
 

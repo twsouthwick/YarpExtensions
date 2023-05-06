@@ -3,52 +3,51 @@
 partial class RequestForwarderFeatures : IHttpRequestFeature
 {
     private FeatureReference<IHttpRequestFeature> _request = FeatureReference<IHttpRequestFeature>.Default;
+    private IHeaderDictionary? _requestHeaders;
 
-    private IHttpRequestFeature GetRequest() => _request.Fetch(_other)!;
+    private IHttpRequestFeature RequestFeature => _request.Fetch(_other)!;
 
     string IHttpRequestFeature.Protocol
     {
-        get => GetRequest().Protocol;
+        get => RequestFeature.Protocol;
         set => throw new NotImplementedException();
     }
 
     string IHttpRequestFeature.Scheme
     {
-        get => GetRequest().Scheme;
+        get => RequestFeature.Scheme;
         set => throw new NotImplementedException();
     }
 
     string IHttpRequestFeature.Method
     {
-        get => GetRequest().Method;
+        get => RequestFeature.Method;
         set => throw new NotImplementedException();
     }
 
     string IHttpRequestFeature.PathBase
     {
-        get => GetRequest().PathBase;
+        get => RequestFeature.PathBase;
         set => throw new NotImplementedException();
     }
 
     string IHttpRequestFeature.Path
     {
-        get => GetRequest().Path;
+        get => RequestFeature.Path;
         set => throw new NotImplementedException();
     }
 
     string IHttpRequestFeature.QueryString
     {
-        get => GetRequest().QueryString;
+        get => RequestFeature.QueryString;
         set => throw new NotImplementedException();
     }
 
     string IHttpRequestFeature.RawTarget
     {
-        get => GetRequest().RawTarget;
+        get => RequestFeature.RawTarget;
         set => throw new NotImplementedException();
     }
-
-    private IHeaderDictionary? _requestHeaders;
 
     IHeaderDictionary IHttpRequestFeature.Headers
     {
@@ -56,7 +55,7 @@ partial class RequestForwarderFeatures : IHttpRequestFeature
         {
             if (_requestHeaders is null)
             {
-                _requestHeaders = GetRequest().Headers;
+                _requestHeaders = RequestFeature.Headers;
 
                 if (!_requestHeaders.IsReadOnly)
                 {
@@ -71,7 +70,7 @@ partial class RequestForwarderFeatures : IHttpRequestFeature
 
     Stream IHttpRequestFeature.Body
     {
-        get => GetRequest().Body;
+        get => RequestFeature.Body;
         set => throw new NotImplementedException();
     }
 }

@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCheckedForwarder(options =>
 {
     options.IgnoredHeaders.Add(HeaderNames.Server);
-    //options.IgnoredHeaders.Add(HeaderNames.Date);
+    options.IgnoredHeaders.Add(HeaderNames.Date);
 });
 
 var app = builder.Build();

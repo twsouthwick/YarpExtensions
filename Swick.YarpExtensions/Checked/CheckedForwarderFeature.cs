@@ -1,4 +1,5 @@
 ﻿using Swick.YarpExtensions.Features;
+using System.Diagnostics.CodeAnalysis;
 using Yarp.ReverseProxy.Forwarder;
 
 namespace Swick.YarpExtensions.Checked;
@@ -25,15 +26,28 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
 
     public HttpContext Context { get; }
 
-    public ForwarderError Error { get; set; }
+    public ForwarderError? Error { get; set; }
 
     public async ValueTask ForwardAsync()
     {
+        if (Error is not null)
+        {
+            throw new InvalidOperationException("Request has already been forwarded.");
+        }
+
         using (new ResetStreamPosition(Context.Request.Body, 0))
         {
             Error = await _forwarder.ForwardAsync(Context, _prefix);
         }
     }
 
-    public ValueTask CompareAsync() => _differ.CompareAsync(_mainRequest, Context, Error);
+    public async ValueTask CompareAsync()
+    {
+        if (Error is null)
+        {
+            await ForwardAsync();
+        }
+
+        await _differ.CompareAsync(_mainRequest, Context, Error.GetValueOrDefault());
+    }
 }

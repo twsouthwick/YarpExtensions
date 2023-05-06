@@ -46,7 +46,6 @@ public static class CheckedExtensions
 
                     if (ctx.Features.Get<ICheckedForwarderFeature>() is { } feature)
                     {
-                        await feature.ForwardAsync();
                         await feature.CompareAsync();
                     }
                 });

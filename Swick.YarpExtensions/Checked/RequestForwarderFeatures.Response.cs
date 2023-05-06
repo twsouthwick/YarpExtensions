@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.IO.Pipelines;
+﻿using System.IO.Pipelines;
 
 namespace Swick.YarpExtensions.Checked;
 
@@ -7,15 +6,6 @@ partial class RequestForwarderFeatures :
     IHttpResponseBodyFeature,
     IHttpResponseFeature
 {
-    private Stream _responseStream;
-
-    [MemberNotNull(nameof(_responseStream))]
-    private void InitializeResponse(HttpContext context)
-    {
-        _responseStream = new MemoryStream();
-        context.Response.OnCompleted(static stream => ((Stream)stream).DisposeAsync().AsTask(), _responseStream);
-    }
-
     Stream IHttpResponseBodyFeature.Stream => _responseStream;
 
     PipeWriter IHttpResponseBodyFeature.Writer => throw new NotImplementedException();

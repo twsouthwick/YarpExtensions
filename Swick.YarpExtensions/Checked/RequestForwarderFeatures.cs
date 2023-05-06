@@ -4,18 +4,19 @@ internal sealed partial class RequestForwarderFeatures : IDisposable, IHttpReque
 {
     private readonly CancellationTokenSource _cts;
     private readonly IFeatureCollection _other;
+    private readonly Stream _responseStream;
 
     public RequestForwarderFeatures(HttpContext context)
     {
         _other = context.Features;
         _cts = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
-
-        InitializeResponse(context);
+        _responseStream = new BufferingReadWriteStream();
     }
 
     public void Dispose()
     {
         _cts.Dispose();
+        _responseStream.Dispose();
     }
 
     private TFeature GetFeature<TFeature>() => _other.Get<TFeature>()!;

@@ -7,10 +7,10 @@ namespace Swick.YarpExtensions.Checked;
 
 internal class HttpContextDiffer
 {
-    private readonly IOptions<CheckedYarpOptions> _options;
+    private readonly IOptions<CheckedForwarderOptions> _options;
     private readonly ILogger<HttpContextDiffer> _logger;
 
-    public HttpContextDiffer(IOptions<CheckedYarpOptions> options, ILogger<HttpContextDiffer> logger)
+    public HttpContextDiffer(IOptions<CheckedForwarderOptions> options, ILogger<HttpContextDiffer> logger)
     {
         _options = options;
         _logger = logger;

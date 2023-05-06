@@ -8,5 +8,7 @@ public interface ICheckedForwarderFeature
 
     ForwarderError Error { get; }
 
+    ValueTask ForwardAsync();
+
     ValueTask CompareAsync();
 }

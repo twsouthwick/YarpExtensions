@@ -1,6 +1,6 @@
 ﻿namespace Swick.YarpExtensions;
 
-public class CheckedYarpOptions
+public class CheckedForwarderOptions
 {
     public ICollection<string> IgnoredHeaders { get; } = new HashSet<string>();
 }

@@ -6,11 +6,15 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
 {
     private readonly HttpContext _mainRequest;
     private readonly HttpContextDiffer _differ;
+    private readonly CheckedForwarder _forwarder;
+    private readonly string _prefix;
 
-    public CheckedForwarderFeature(HttpContext mainRequest, HttpContextDiffer differ)
+    public CheckedForwarderFeature(HttpContext mainRequest, HttpContextDiffer differ, CheckedForwarder forwarder, string prefix)
     {
         _mainRequest = mainRequest;
         _differ = differ;
+        _forwarder = forwarder;
+        _prefix = prefix;
 
         var features = new RequestForwarderFeatures(mainRequest);
         Context = new DefaultHttpContext(features);
@@ -21,6 +25,14 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
     public HttpContext Context { get; }
 
     public ForwarderError Error { get; set; }
+
+    public async ValueTask ForwardAsync()
+    {
+        using (new ResetStreamPosition(Context.Request.Body, 0))
+        {
+            Error = await _forwarder.ForwardAsync(Context, _prefix);
+        }
+    }
 
     public ValueTask CompareAsync() => _differ.CompareAsync(_mainRequest, Context, Error);
 }

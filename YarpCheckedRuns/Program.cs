@@ -3,13 +3,11 @@ using Swick.YarpExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHttpForwarder();
-builder.Services.AddOptions<CheckedYarpOptions>()
-    .Configure(options =>
-    {
-        options.IgnoredHeaders.Add(HeaderNames.Server);
-        options.IgnoredHeaders.Add(HeaderNames.Date);
-    });
+builder.Services.AddCheckedForwarder(options =>
+{
+    options.IgnoredHeaders.Add(HeaderNames.Server);
+    options.IgnoredHeaders.Add(HeaderNames.Date);
+});
 
 var app = builder.Build();
 

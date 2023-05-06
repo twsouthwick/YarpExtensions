@@ -99,28 +99,26 @@ internal class HttpContextDiffer
 
     private static async ValueTask<bool> StreamEquals(Stream stream1, Stream stream2, CancellationToken token)
     {
-        var pos1 = stream1.Position;
-        stream1.Position = 0;
-        var pos2 = stream2.Position;
-        stream2.Position = 0;
-        var length = (int)stream1.Length;
-        var bytes1 = ArrayPool<byte>.Shared.Rent(length);
-        var bytes2 = ArrayPool<byte>.Shared.Rent(length);
-        var memory1 = new Memory<byte>(bytes1, 0, length);
-        var memory2 = new Memory<byte>(bytes2, 0, length);
-
-        try
+        using (new ResetStreamPosition(stream1, 0))
+        using (new ResetStreamPosition(stream2, 0))
         {
-            await Task.WhenAll(stream1.ReadExactlyAsync(memory1, token).AsTask(), stream2.ReadExactlyAsync(memory2, token).AsTask());
+            var length = (int)stream1.Length;
+            var bytes1 = ArrayPool<byte>.Shared.Rent(length);
+            var bytes2 = ArrayPool<byte>.Shared.Rent(length);
+            var memory1 = new Memory<byte>(bytes1, 0, length);
+            var memory2 = new Memory<byte>(bytes2, 0, length);
 
-            return memory1.Span.SequenceEqual(memory2.Span);
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(bytes1);
-            ArrayPool<byte>.Shared.Return(bytes2);
-            stream1.Position = pos1;
-            stream2.Position = pos2;
+            try
+            {
+                await Task.WhenAll(stream1.ReadExactlyAsync(memory1, token).AsTask(), stream2.ReadExactlyAsync(memory2, token).AsTask());
+
+                return memory1.Span.SequenceEqual(memory2.Span);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes1);
+                ArrayPool<byte>.Shared.Return(bytes2);
+            }
         }
     }
 }

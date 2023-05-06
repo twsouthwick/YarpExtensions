@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Buffers;
+using Swick.YarpExtensions.Features;
 using Yarp.ReverseProxy.Forwarder;
 
 namespace Swick.YarpExtensions.Checked;
@@ -16,7 +16,7 @@ internal class HttpContextDiffer
         _logger = logger;
     }
 
-    public async ValueTask CompareAsync(HttpContext local, HttpContext yarp, ForwarderError error)
+    public ValueTask CompareAsync(HttpContext local, HttpContext yarp, ForwarderError error)
     {
         using (_logger.BeginScope("Comparing forwarded YARP for {Path}", local.Request.Path))
         {
@@ -28,9 +28,11 @@ internal class HttpContextDiffer
             {
                 CompareStatus(local, yarp);
                 CompareHeaders(local, yarp);
-                await CompareBody(local, yarp);
+                CompareBody(local, yarp);
             }
         }
+
+        return ValueTask.CompletedTask;
     }
 
     private void CompareStatus(HttpContext local, HttpContext yarp)
@@ -81,43 +83,25 @@ internal class HttpContextDiffer
         }
     }
 
-    private async ValueTask CompareBody(HttpContext local, HttpContext yarp)
+    private void CompareBody(HttpContext local, HttpContext yarp)
     {
-        var localBody = local.Response.Body;
-        var yarpBody = yarp.Response.Body;
-
-        if (localBody.Length != yarpBody.Length)
+        if (local.Features.Get<IMemoryResponseBodyFeature>() is { } localMemory && yarp.Features.Get<IMemoryResponseBodyFeature>() is { } yarpMemory)
         {
-            _logger.LogWarning("YARP and local body do not match length");
-        }
-        else if (!await StreamEquals(localBody, yarpBody, local.RequestAborted))
-        {
-            _logger.LogWarning("YARP and local contents do not match length");
-        }
-    }
-
-    private static async ValueTask<bool> StreamEquals(Stream stream1, Stream stream2, CancellationToken token)
-    {
-        using (new ResetStreamPosition(stream1, 0))
-        using (new ResetStreamPosition(stream2, 0))
-        {
-            var length = (int)stream1.Length;
-            var bytes1 = ArrayPool<byte>.Shared.Rent(length);
-            var bytes2 = ArrayPool<byte>.Shared.Rent(length);
-            var memory1 = new Memory<byte>(bytes1, 0, length);
-            var memory2 = new Memory<byte>(bytes2, 0, length);
-
-            try
+            if (localMemory.Body.Length != yarpMemory.Body.Length)
             {
-                await Task.WhenAll(stream1.ReadExactlyAsync(memory1, token).AsTask(), stream2.ReadExactlyAsync(memory2, token).AsTask());
-
-                return memory1.Span.SequenceEqual(memory2.Span);
+                _logger.LogWarning("YARP and local body do not match length");
             }
-            finally
+            else
             {
-                ArrayPool<byte>.Shared.Return(bytes1);
-                ArrayPool<byte>.Shared.Return(bytes2);
+                if (!localMemory.Body.Span.SequenceEqual(yarpMemory.Body.Span))
+                {
+                    _logger.LogWarning("YARP and local contents do not match length");
+                }
             }
+        }
+        else
+        {
+            _logger.LogWarning("Could not compare body contents");
         }
     }
 }

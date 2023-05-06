@@ -6,18 +6,11 @@ internal sealed class BufferResponseStreamForReplayMiddleware
 
     public BufferResponseStreamForReplayMiddleware(RequestDelegate next) => _next = next;
 
-    public async Task InvokeAsync(HttpContext context)
+    public Task InvokeAsync(HttpContext context)
     {
         context.Request.EnableBuffering();
+        context.Response.BufferResponseStreamToMemory();
 
-        // Buffer response stream so we can compare it
-        using var stream = new BufferingReadWriteStream();
-        var current = context.Response.Body;
-        context.Response.Body = stream;
-
-        await _next(context);
-
-        stream.Position = 0;
-        await stream.CopyToAsync(current);
+        return _next(context);
     }
 }

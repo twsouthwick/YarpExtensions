@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Swick.YarpExtensions.Checked;
+using Swick.YarpExtensions.Comparer;
 using Swick.YarpExtensions.Features;
 
 namespace Swick.YarpExtensions;
@@ -10,50 +11,55 @@ public static class CheckedExtensions
     public static void AddCheckedForwarder(this IServiceCollection services)
     {
         services.AddHttpForwarder();
-        services.AddSingleton<HttpContextDiffer>();
         services.AddSingleton<CheckedForwarder>();
-    }
-
-    public static void AddCheckedForwarder(this IServiceCollection services, Action<CheckedForwarderOptions> configure)
-    {
-        services.AddCheckedForwarder();
-        services.AddOptions<CheckedForwarderOptions>()
-            .Configure(configure);
     }
 
     public static void UseCheckedForwarder(this IApplicationBuilder app)
     {
-        var differ = app.ApplicationServices.GetRequiredService<HttpContextDiffer>();
         var forwarder = app.ApplicationServices.GetRequiredService<CheckedForwarder>();
 
-        app.UseWhen(
-            context =>
+        app.Use(async (ctx, next) =>
+        {
+            if (ctx.GetEndpoint()?.Metadata.GetMetadata<ICheckedForwarderMetadata>() is { } metadata)
             {
-                if (context.GetCheckedMetadata() is { } metadata)
+                // Must be able to replay request
+                ctx.Request.EnableBuffering();
+
+                // Run pipeline of any updates to the main context if needed.
+                await metadata.MainContext(ctx);
+
+                var feature = new CheckedForwarderFeature(ctx, metadata.Comparison, forwarder, metadata.Destination);
+                ctx.Features.Set<ICheckedForwarderFeature>(feature);
+
+                // Initialize forwarded context if anything is registered
+                await metadata.ForwardedContext(feature.Context);
+
+                await next(ctx);
+
+                // Retrieve it in case someone overwrote it
+                if (ctx.Features.Get<ICheckedForwarderFeature>() is { } comparisonFeature)
                 {
-                    context.Features.Set<ICheckedForwarderFeature>(new CheckedForwarderFeature(context, differ, forwarder, metadata.Destination));
-                    return true;
+                    await comparisonFeature.CompareAsync();
                 }
-
-                return false;
-            },
-            app =>
+            }
+            else
             {
-                app.UseMiddleware<BufferResponseStreamForReplayMiddleware>();
-                app.Use(async (ctx, next) =>
-                {
-                    await next(ctx);
-
-                    if (ctx.Features.Get<ICheckedForwarderFeature>() is { } feature)
-                    {
-                        await feature.CompareAsync();
-                    }
-                });
-            });
+                await next(ctx);
+            }
+        });
     }
 
-    public static IEndpointConventionBuilder WithCheckedYarp(this IEndpointConventionBuilder builder, string destination)
-        => builder.WithMetadata(new CheckedForwarderMetadata(destination));
+    public static IEndpointConventionBuilder WithCheckedForwarder(this IEndpointConventionBuilder builder, string destination, Action<IContextComparerBuilder> comparer)
+    {
+        builder.Add(builder =>
+        {
+            var contextBuilder = new ContextComparerBuilder(destination, builder.ApplicationServices);
 
-    private static CheckedForwarderMetadata? GetCheckedMetadata(this HttpContext context) => context.GetEndpoint()?.Metadata.GetMetadata<CheckedForwarderMetadata>();
+            comparer(contextBuilder);
+
+            builder.Metadata.Add(contextBuilder.Build());
+        });
+
+        return builder;
+    }
 }

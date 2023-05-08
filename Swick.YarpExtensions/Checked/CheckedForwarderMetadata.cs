@@ -1,3 +1,12 @@
 ﻿namespace Swick.YarpExtensions.Checked;
 
-internal sealed record class CheckedForwarderMetadata(string Destination);
+internal interface ICheckedForwarderMetadata
+{
+    string Destination { get; }
+
+    RequestDelegate MainContext { get; }
+
+    RequestDelegate ForwardedContext { get; }
+
+    RequestDelegate Comparison { get; }
+}

@@ -3,11 +3,7 @@ using Swick.YarpExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCheckedForwarder(options =>
-{
-    options.IgnoredHeaders.Add(HeaderNames.Server);
-    options.IgnoredHeaders.Add(HeaderNames.Date);
-});
+builder.Services.AddCheckedForwarder();
 
 var app = builder.Build();
 
@@ -27,6 +23,11 @@ app.UseCheckedForwarder();
 app.MapGet("/d", () => "here");
 
 app.Map("/", () => "Hello world!")
-    .WithCheckedYarp("http://localhost:5276");
+    .WithCheckedForwarder("http://localhost:5276", builder =>
+    {
+        builder.CompareHeaders(HeaderNames.Server, HeaderNames.Date);
+        builder.CompareStatusCodes();
+        builder.BodyMustBeEqual();
+    });
 
 app.Run();

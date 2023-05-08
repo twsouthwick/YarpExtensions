@@ -1,4 +1,5 @@
-﻿using Yarp.ReverseProxy.Forwarder;
+﻿using Microsoft.Extensions.Logging;
+using Yarp.ReverseProxy.Forwarder;
 
 namespace Swick.YarpExtensions.Features;
 
@@ -23,4 +24,9 @@ public interface ICheckedForwarderFeature
     /// Compares the result of forwarding. Should forward the request if it has not been forwarded.
     /// </summary>
     ValueTask CompareAsync();
+    
+    /// <summary>
+    /// Gets the logger to write output to.
+    /// </summary>
+    ILogger Logger { get; }
 }

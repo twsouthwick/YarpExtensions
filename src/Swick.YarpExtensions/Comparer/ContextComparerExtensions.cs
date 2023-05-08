@@ -51,7 +51,10 @@ public static class ContextComparerExtensions
         });
     }
 
-    internal static void BufferResponseToMemory(this IContextComparerBuilder builder)
+    /// <summary>
+    /// Enables use of <see cref="IMemoryResponseBodyFeature"/> to access response.
+    /// </summary>
+    public static void BufferResponseToMemory(this IContextComparerBuilder builder)
     {
         const string Key = "bufferResponse";
 

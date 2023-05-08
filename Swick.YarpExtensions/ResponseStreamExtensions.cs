@@ -8,7 +8,7 @@ internal static class ResponseStreamExtensions
     {
         if (response.HttpContext.Features.Get<IMemoryResponseBodyFeature>() is null)
         {
-            var memoryResponse = new ReplayPassThroughStream(response.Body);
+            var memoryResponse = new MemoryBackedPassThroughStream(response.Body);
 
             response.Body = memoryResponse;
             response.RegisterForDisposeAsync(memoryResponse);

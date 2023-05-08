@@ -3,7 +3,7 @@ using System.Buffers;
 
 namespace Swick.YarpExtensions;
 
-internal class ReplayPassThroughStream : Stream, IMemoryResponseBodyFeature
+internal class MemoryBackedPassThroughStream : Stream, IMemoryResponseBodyFeature
 {
     private static readonly ArrayPool<byte> _pool = ArrayPool<byte>.Shared;
 
@@ -11,7 +11,7 @@ internal class ReplayPassThroughStream : Stream, IMemoryResponseBodyFeature
     private byte[] _array;
     private int _length;
 
-    public ReplayPassThroughStream(Stream inner)
+    public MemoryBackedPassThroughStream(Stream inner)
     {
         _inner = inner;
         _array = Array.Empty<byte>();

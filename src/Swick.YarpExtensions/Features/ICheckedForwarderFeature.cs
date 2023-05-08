@@ -13,7 +13,7 @@ public interface ICheckedForwarderFeature
     /// <summary>
     /// Gets the result of forwarding the call. <c>null</c> if forward has not been called.
     /// </summary>
-    ForwarderError? Error { get; }
+    ForwarderError? Status { get; }
 
     /// <summary>
     /// Forwards the request and stores any error.

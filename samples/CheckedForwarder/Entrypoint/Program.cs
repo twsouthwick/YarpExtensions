@@ -8,7 +8,7 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler("/Status");
     app.UseHsts();
 }
 
@@ -41,6 +41,7 @@ var bodyComparisonGroup = app.MapGroup("/obj")
 
 bodyComparisonGroup.Map("/same", () => new ResultObj { A = 5 }); // Same, but different formatting
 bodyComparisonGroup.Map("/different", () => new ResultObj { A = 6 }); // A=5 on the remote
+bodyComparisonGroup.Map("/none", () => new ResultObj { A = 1 });
 
 app.Run();
 

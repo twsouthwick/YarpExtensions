@@ -4,6 +4,7 @@ using Microsoft.Net.Http.Headers;
 using Swick.YarpExtensions.Comparer;
 using Swick.YarpExtensions.Features;
 using System.Text.Json;
+using Yarp.ReverseProxy.Forwarder;
 
 namespace Swick.YarpExtensions;
 
@@ -46,6 +47,31 @@ public static class ContextComparerExtensions
                 if (!comparer.Equals(responseObj, forwardedObj))
                 {
                     forwarded.Logger.LogWarning("Local response and forwarded response do not match");
+                }
+            }
+        });
+    }
+
+    internal static void CheckIfForwarderSucceeded(this IContextComparerBuilder builder)
+    {
+        builder.Comparison.Use(async (ctx, next) =>
+        {
+            if (ctx.Features.Get<ICheckedForwarderFeature>() is { } feature)
+            {
+                // Verify forwarder has run successfully
+                if (feature.Status != ForwarderError.None)
+                {
+                    feature.Logger.LogWarning("Forwarder failed with {ForwarderStatus}", feature.Status);
+                }
+
+                // Skip if a 4xx error
+                else if (feature.Context.Response.StatusCode is >= 400 and < 500)
+                {
+                    feature.Logger.LogWarning("Forwarded response failed with {StatusCode}", feature.Context.Response.StatusCode);
+                }
+                else
+                {
+                    await next(ctx);
                 }
             }
         });

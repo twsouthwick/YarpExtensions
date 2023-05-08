@@ -16,13 +16,10 @@ public static class CheckedExtensions
         {
             if (ctx.GetEndpoint()?.Metadata.GetMetadata<ICheckedForwarderMetadata>() is { } metadata)
             {
-                // Must be able to replay request
-                ctx.Request.EnableBuffering();
-
                 var feature = new CheckedForwarderFeature(ctx, metadata.Comparison, forwarder, metadata.Destination);
                 ctx.Features.Set<ICheckedForwarderFeature>(feature);
 
-                // Initialize forwarded context if anything is registered
+                // Initialize forwarded context if anything is registered - this may remove the feature if it is turned off for the request
                 await metadata.Request(ctx);
 
                 await next(ctx);

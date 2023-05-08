@@ -10,8 +10,14 @@ internal class ContextComparerBuilder : IContextComparerBuilder
     public ContextComparerBuilder(string destination, IServiceProvider services)
     {
         Destination = destination;
-        Request = new ForwarderAppBuilder(services);
-        Comparison = new ForwarderAppBuilder(services);
+        Request = new ForwarderAppBuilder(services, ctx =>
+        {
+            // Must be able to replay request
+            ctx.Request.EnableBuffering();
+            return Task.CompletedTask;
+        });
+
+        Comparison = new ForwarderAppBuilder(services, _ => Task.CompletedTask);
     }
 
     public IApplicationBuilder Request { get; }
@@ -40,14 +46,17 @@ internal class ContextComparerBuilder : IContextComparerBuilder
     {
         private const string ServerFeaturesKey = "server.Features";
         private const string ApplicationServicesKey = "application.Services";
+        private const string InitialEndpointKey = "application.initialEndpoint";
 
         private readonly List<Func<RequestDelegate, RequestDelegate>> _components = new();
 
-        public ForwarderAppBuilder(IServiceProvider serviceProvider)
+        public ForwarderAppBuilder(IServiceProvider serviceProvider, RequestDelegate initial)
         {
+
             Properties = new Dictionary<string, object?>(StringComparer.Ordinal);
             ApplicationServices = serviceProvider;
 
+            SetProperty(InitialEndpointKey, initial);
             SetProperty(ServerFeaturesKey, new FeatureCollection());
         }
 
@@ -92,7 +101,7 @@ internal class ContextComparerBuilder : IContextComparerBuilder
             var loggerFactory = ApplicationServices?.GetService<ILoggerFactory>();
             var logger = loggerFactory?.CreateLogger<ForwarderAppBuilder>();
 
-            RequestDelegate app = context => Task.CompletedTask;
+            RequestDelegate app = GetProperty<RequestDelegate>(InitialEndpointKey)!;
 
             for (var c = _components.Count - 1; c >= 0; c--)
             {

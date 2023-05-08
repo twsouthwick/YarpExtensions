@@ -7,6 +7,21 @@ namespace Swick.YarpExtensions;
 
 public static class ContextComparerExtensions
 {
+    public static void IsEnabledWhen(this IContextComparerBuilder builder, Func<HttpContext, ValueTask<bool>> predicate)
+    {
+        builder.Request.Use(async (ctx, next) =>
+        {
+            if (await predicate(ctx))
+            {
+                await next(ctx);
+            }
+            else
+            {
+                ctx.Features.Set<ICheckedForwarderFeature>(null);
+            }
+        });
+    }
+
     public static void BodyMustBeEqual(this IContextComparerBuilder builder)
     {
         builder.Request.UseForwardedContext((ctx, forwarded) =>
@@ -96,14 +111,14 @@ public static class ContextComparerExtensions
 
     private static void UseForwardedContext(this IApplicationBuilder builder, Action<HttpContext, ICheckedForwarderFeature> action)
     {
-        builder.Use((ctx, next) =>
+        builder.Use(async (ctx, next) =>
         {
+            await next(ctx);
+
             if (ctx.Features.Get<ICheckedForwarderFeature>() is { } feature)
             {
                 action(ctx, feature);
             }
-
-            return next(ctx);
         });
     }
 }

@@ -3,7 +3,7 @@ using Swick.YarpExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCheckedForwarder();
+builder.Services.AddHttpForwarder();
 
 var app = builder.Build();
 

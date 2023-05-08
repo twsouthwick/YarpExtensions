@@ -8,15 +8,9 @@ namespace Swick.YarpExtensions;
 
 public static class CheckedExtensions
 {
-    public static void AddCheckedForwarder(this IServiceCollection services)
-    {
-        services.AddHttpForwarder();
-        services.AddSingleton<CheckedForwarder>();
-    }
-
     public static void UseCheckedForwarder(this IApplicationBuilder app)
     {
-        var forwarder = app.ApplicationServices.GetRequiredService<CheckedForwarder>();
+        var forwarder = ActivatorUtilities.CreateInstance<CheckedForwarder>(app.ApplicationServices);
 
         app.Use(async (ctx, next) =>
         {

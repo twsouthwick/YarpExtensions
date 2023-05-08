@@ -4,9 +4,7 @@ internal interface ICheckedForwarderMetadata
 {
     string Destination { get; }
 
-    RequestDelegate MainContext { get; }
-
-    RequestDelegate ForwardedContext { get; }
+    RequestDelegate Request { get; }
 
     RequestDelegate Comparison { get; }
 }

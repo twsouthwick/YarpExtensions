@@ -25,14 +25,11 @@ public static class CheckedExtensions
                 // Must be able to replay request
                 ctx.Request.EnableBuffering();
 
-                // Run pipeline of any updates to the main context if needed.
-                await metadata.MainContext(ctx);
-
                 var feature = new CheckedForwarderFeature(ctx, metadata.Comparison, forwarder, metadata.Destination);
                 ctx.Features.Set<ICheckedForwarderFeature>(feature);
 
                 // Initialize forwarded context if anything is registered
-                await metadata.ForwardedContext(feature.Context);
+                await metadata.Request(ctx);
 
                 await next(ctx);
 

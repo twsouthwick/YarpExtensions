@@ -4,9 +4,7 @@ namespace Swick.YarpExtensions.Comparer;
 
 public interface IContextComparerBuilder
 {
-    IApplicationBuilder MainContext { get; }
-
-    IApplicationBuilder ForwardedContext { get; }
+    IApplicationBuilder Request { get; }
 
     IApplicationBuilder Comparison { get; }
 }

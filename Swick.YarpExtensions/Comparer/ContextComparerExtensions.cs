@@ -9,19 +9,13 @@ public static class ContextComparerExtensions
 {
     public static void BodyMustBeEqual(this IContextComparerBuilder builder)
     {
-        builder.MainContext.Use((ctx, next) =>
+        builder.Request.UseForwardedContext((ctx, forwarded) =>
         {
             ctx.Response.BufferResponseStreamToMemory();
-            return next(ctx);
+            forwarded.Context.Response.BufferResponseStreamToMemory();
         });
 
-        builder.ForwardedContext.Use((ctx, next) =>
-        {
-            ctx.Response.BufferResponseStreamToMemory();
-            return next(ctx);
-        });
-
-        builder.UseForwardedContext((context, forwarded) =>
+        builder.Comparison.UseForwardedContext((context, forwarded) =>
         {
             if (context.Features.Get<IMemoryResponseBodyFeature>() is { } responseMemory && forwarded.Context.Features.Get<IMemoryResponseBodyFeature>() is { } forwardedMemory)
             {
@@ -48,7 +42,7 @@ public static class ContextComparerExtensions
     {
         var ignore = new HashSet<string>(ignoredHeaders, StringComparer.OrdinalIgnoreCase);
 
-        builder.UseForwardedContext((context, forwarded) =>
+        builder.Comparison.UseForwardedContext((context, forwarded) =>
         {
             var visited = new HashSet<string>();
 
@@ -91,7 +85,7 @@ public static class ContextComparerExtensions
 
     public static void CompareStatusCodes(this IContextComparerBuilder builder)
     {
-        builder.UseForwardedContext((main, forwarded) =>
+        builder.Comparison.UseForwardedContext((main, forwarded) =>
         {
             if (main.Response.StatusCode != forwarded.Context.Response.StatusCode)
             {
@@ -100,9 +94,9 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void UseForwardedContext(this IContextComparerBuilder builder, Action<HttpContext, ICheckedForwarderFeature> action)
+    private static void UseForwardedContext(this IApplicationBuilder builder, Action<HttpContext, ICheckedForwarderFeature> action)
     {
-        builder.Comparison.Use((ctx, next) =>
+        builder.Use((ctx, next) =>
         {
             if (ctx.Features.Get<ICheckedForwarderFeature>() is { } feature)
             {

@@ -10,14 +10,11 @@ internal class ContextComparerBuilder : IContextComparerBuilder
     public ContextComparerBuilder(string destination, IServiceProvider services)
     {
         Destination = destination;
-        MainContext = new ForwarderAppBuilder(services);
-        ForwardedContext = new ForwarderAppBuilder(services);
+        Request = new ForwarderAppBuilder(services);
         Comparison = new ForwarderAppBuilder(services);
     }
 
-    public IApplicationBuilder MainContext { get; }
-
-    public IApplicationBuilder ForwardedContext { get; }
+    public IApplicationBuilder Request { get; }
 
     public IApplicationBuilder Comparison { get; }
 
@@ -27,17 +24,14 @@ internal class ContextComparerBuilder : IContextComparerBuilder
     {
         Comparison = Comparison.Build(),
         Destination = Destination,
-        ForwardedContext = ForwardedContext.Build(),
-        MainContext = MainContext.Build(),
+        Request = Request.Build(),
     };
 
     private sealed class Built : ICheckedForwarderMetadata
     {
         public required string Destination { get; init; }
 
-        public required RequestDelegate MainContext { get; init; }
-
-        public required RequestDelegate ForwardedContext { get; init; }
+        public required RequestDelegate Request { get; init; }
 
         public required RequestDelegate Comparison { get; init; }
     }

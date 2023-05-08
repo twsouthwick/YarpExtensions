@@ -25,7 +25,8 @@ app.MapGet("/d", () => "here");
 app.Map("/", () => "Hello world!")
     .WithCheckedForwarder("http://localhost:5276", builder =>
     {
-        builder.CompareHeaders(HeaderNames.Server, HeaderNames.Date);
+        builder.IgnoreDefaultHeaders();
+        builder.CompareHeaders();
         builder.CompareStatusCodes();
         builder.BodyMustBeEqual();
     });

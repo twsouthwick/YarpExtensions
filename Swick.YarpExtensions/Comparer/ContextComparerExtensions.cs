@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using Swick.YarpExtensions.Comparer;
 using Swick.YarpExtensions.Features;
 
@@ -53,9 +54,46 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void CompareHeaders(this IContextComparerBuilder builder, params string[] ignoredHeaders)
+    public static void IgnoreHeaders(this IContextComparerBuilder builder, params string[] headers)
     {
-        var ignore = new HashSet<string>(ignoredHeaders, StringComparer.OrdinalIgnoreCase);
+        var set = builder.GetIgnoredHeaders();
+
+        set.UnionWith(headers);
+
+        builder.CompareHeaders();
+    }
+
+    public static void IgnoreDefaultHeaders(this IContextComparerBuilder builder)
+        => builder.IgnoreHeaders(
+            HeaderNames.TransferEncoding,
+            HeaderNames.Server,
+            HeaderNames.Date);
+
+    private static HashSet<string> GetIgnoredHeaders(this IContextComparerBuilder builder)
+    {
+        const string IgnoredKey = "IgnoredHeaders";
+
+        if (builder.Comparison.Properties.TryGetValue(IgnoredKey, out var ignored) && ignored is HashSet<string> set)
+        {
+            return set;
+        }
+
+        set = new();
+        builder.Comparison.Properties[IgnoredKey] = set;
+        return set;
+    }
+
+    public static void CompareHeaders(this IContextComparerBuilder builder)
+    {
+        const string CompareAddedKey = "compareAdded";
+
+        if (builder.Comparison.Properties.ContainsKey(CompareAddedKey))
+        {
+            return;
+        }
+
+        builder.Comparison.Properties[CompareAddedKey] = true;
+        var ignored = builder.GetIgnoredHeaders();
 
         builder.Comparison.UseForwardedContext((context, forwarded) =>
         {
@@ -63,7 +101,7 @@ public static class ContextComparerExtensions
 
             foreach (var (name, value) in context.Response.Headers)
             {
-                if (ignoredHeaders.Contains(name))
+                if (ignored.Contains(name))
                 {
                     continue;
                 }
@@ -85,7 +123,7 @@ public static class ContextComparerExtensions
 
             foreach (var (name, _) in forwarded.Context.Response.Headers)
             {
-                if (ignore.Contains(name))
+                if (ignored.Contains(name))
                 {
                     continue;
                 }

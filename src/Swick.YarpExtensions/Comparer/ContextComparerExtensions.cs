@@ -114,7 +114,7 @@ public static class ContextComparerExtensions
         return false;
     }
 
-    public static void BodyMustBeEqual(this IContextComparerBuilder builder)
+    public static void CompareBodyBytes(this IContextComparerBuilder builder)
     {
         builder.BufferResponseToMemory();
 

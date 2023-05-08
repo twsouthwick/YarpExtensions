@@ -25,7 +25,7 @@ app.Map("/", () => "Hello world!")
         builder.IgnoreDefaultHeaders();
         builder.CompareHeaders();
         builder.CompareStatusCodes();
-        builder.BodyMustBeEqual();
+        builder.CompareBodyBytes();
     });
 
 // Manually writing to ensure formatting is different

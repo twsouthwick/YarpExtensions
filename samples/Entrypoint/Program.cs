@@ -1,4 +1,3 @@
-using Microsoft.Net.Http.Headers;
 using Swick.YarpExtensions;
 
 var builder = WebApplication.CreateBuilder(args);

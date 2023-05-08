@@ -12,15 +12,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-
 //app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 app.UseCheckedForwarder();
 
+const string Destination = "http://localhost:5276";
+
 app.Map("/", () => "Hello world!")
-    .WithCheckedForwarder("http://localhost:5276", builder =>
+    .WithCheckedForwarder(Destination, builder =>
     {
         builder.IgnoreDefaultHeaders();
         builder.CompareHeaders();
@@ -30,7 +31,7 @@ app.Map("/", () => "Hello world!")
 
 // Manually writing to ensure formatting is different
 var bodyComparisonGroup = app.MapGroup("/obj")
-  .WithCheckedForwarder("http://localhost:5276", builder =>
+  .WithCheckedForwarder(Destination, builder =>
   {
       builder.IgnoreDefaultHeaders();
       builder.CompareHeaders();

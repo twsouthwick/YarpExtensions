@@ -10,7 +10,8 @@ public static class CheckedExtensions
         app.UseMiddleware<CheckedForwarderMiddleware>();
     }
 
-    public static IEndpointConventionBuilder WithCheckedForwarder(this IEndpointConventionBuilder builder, string destination, Action<IContextComparerBuilder> comparer)
+    public static T WithCheckedForwarder<T>(this T builder, string destination, Action<IContextComparerBuilder> comparer)
+        where T : IEndpointConventionBuilder
     {
         builder.Add(builder =>
         {

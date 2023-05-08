@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Swick.YarpExtensions.Comparer;
 using Swick.YarpExtensions.Features;
+using System.Text.Json;
 
 namespace Swick.YarpExtensions;
 
@@ -23,33 +24,79 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void BodyMustBeEqual(this IContextComparerBuilder builder)
+    public static void CompareBody<T>(this IContextComparerBuilder builder)
+        => builder.CompareBody<T>(EqualityComparer<T>.Default);
+
+    public static void CompareBody<T>(this IContextComparerBuilder builder, IEqualityComparer<T> comparer, JsonSerializerOptions? options = null)
     {
+        options ??= new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
+        builder.BufferResponseToMemory();
+
+        builder.Comparison.UseForwardedContext((context, forwarded) =>
+        {
+            if (TryGetMemory(context, forwarded, out var localMemory, out var forwardedMemory))
+            {
+                var responseObj = JsonSerializer.Deserialize<T>(localMemory.Span, options);
+                var forwardedObj = JsonSerializer.Deserialize<T>(forwardedMemory.Span, options);
+
+                if (!comparer.Equals(responseObj, forwardedObj))
+                {
+                    forwarded.Logger.LogWarning("Local response and forwarded response do not match");
+                }
+            }
+        });
+    }
+
+    internal static void BufferResponseToMemory(this IContextComparerBuilder builder)
+    {
+        const string Key = "bufferResponse";
+
+        if (builder.Request.Properties.ContainsKey(Key))
+        {
+            return;
+        }
+
+        builder.Request.Properties[Key] = true;
+
         builder.Request.UseForwardedContext((ctx, forwarded) =>
         {
             ctx.Response.BufferResponseStreamToMemory();
             forwarded.Context.Response.BufferResponseStreamToMemory();
         });
+    }
+
+    private static bool TryGetMemory(HttpContext context, ICheckedForwarderFeature forwarded, out ReadOnlyMemory<byte> localBytes, out ReadOnlyMemory<byte> forwardedBytes)
+    {
+        if (context.Features.Get<IMemoryResponseBodyFeature>() is { } responseMemory && forwarded.Context.Features.Get<IMemoryResponseBodyFeature>() is { } forwardedMemory)
+        {
+            forwardedBytes = forwardedMemory.Body;
+            localBytes = responseMemory.Body;
+            return true;
+        }
+
+        forwarded.Logger.LogWarning("Could not retrieve local or forwarded body contents");
+
+        forwardedBytes = default;
+        localBytes = default;
+        return false;
+    }
+
+    public static void BodyMustBeEqual(this IContextComparerBuilder builder)
+    {
+        builder.BufferResponseToMemory();
 
         builder.Comparison.UseForwardedContext((context, forwarded) =>
         {
-            if (context.Features.Get<IMemoryResponseBodyFeature>() is { } responseMemory && forwarded.Context.Features.Get<IMemoryResponseBodyFeature>() is { } forwardedMemory)
+            if (TryGetMemory(context, forwarded, out var localMemory, out var forwardedMemory))
             {
-                if (responseMemory.Body.Length != forwardedMemory.Body.Length)
+                if (!localMemory.Span.SequenceEqual(forwardedMemory.Span))
                 {
-                    forwarded.Logger.LogWarning("YARP and local body do not match length");
+                    forwarded.Logger.LogWarning("Forwarded and local contents do not match");
                 }
-                else
-                {
-                    if (!responseMemory.Body.Span.SequenceEqual(forwardedMemory.Body.Span))
-                    {
-                        forwarded.Logger.LogWarning("YARP and local contents do not match length");
-                    }
-                }
-            }
-            else
-            {
-                forwarded.Logger.LogWarning("Could not compare body contents");
             }
         });
     }

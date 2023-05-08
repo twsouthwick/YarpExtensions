@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Swick.YarpExtensions.Checked;
 using Swick.YarpExtensions.Comparer;
 
 namespace Swick.YarpExtensions;
@@ -10,16 +11,27 @@ public static class CheckedExtensions
         app.UseMiddleware<CheckedForwarderMiddleware>();
     }
 
-    public static T WithCheckedForwarder<T>(this T builder, string destination, Action<IContextComparerBuilder> comparer)
+    public static T WithCheckedForwarder<T>(this T builder, string destination, Action<IContextComparerBuilder> configure)
         where T : IEndpointConventionBuilder
     {
+        ICheckedForwarderMetadata? built = null;
+
         builder.Add(builder =>
         {
-            var contextBuilder = new ContextComparerBuilder(destination, builder.ApplicationServices);
+            if (built is { })
+            {
+                builder.Metadata.Add(built);
+            }
+            else
+            {
+                var contextBuilder = new ContextComparerBuilder(destination, builder.ApplicationServices);
 
-            comparer(contextBuilder);
+                configure(contextBuilder);
 
-            builder.Metadata.Add(contextBuilder.Build());
+                built = contextBuilder.Build();
+
+                builder.Metadata.Add(built);
+            }
         });
 
         return builder;

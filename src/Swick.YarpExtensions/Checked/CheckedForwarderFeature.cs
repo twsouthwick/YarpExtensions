@@ -12,7 +12,7 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
     private readonly CheckedForwarder _forwarder;
     private readonly string _prefix;
 
-    public CheckedForwarderFeature(HttpContext mainRequest, RequestDelegate comparison,  CheckedForwarder forwarder, string prefix)
+    public CheckedForwarderFeature(HttpContext mainRequest, RequestDelegate comparison, CheckedForwarder forwarder, string prefix)
     {
         _mainRequest = mainRequest;
         _comparison = comparison;
@@ -23,9 +23,14 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
 
         Context = new DefaultHttpContext();
 
-        ReadOnlyRequestFeatures.Add(mainRequest, Context);
+        var feature = new ReadOnlyRequestFeatures(mainRequest.Features, Context.Features.GetRequiredFeature<IHttpResponseFeature>());
 
-        Context.Response.BufferResponseStreamToMemory();
+        // Ensure the context we'll use for forwarding doesn't modify the original request but forwards a readonly view of things
+        Context.Features.Set<IHttpRequestFeature>(feature);
+        Context.Features.Set<IHttpRequestBodyDetectionFeature>(feature);
+
+        // This will only change the OnCompleted callbacks to ensure they get called as expected on the original context
+        Context.Features.Set<IHttpResponseFeature>(feature);
     }
 
     public HttpContext Context { get; }
@@ -57,24 +62,18 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
         await _comparison(_mainRequest);
     }
 
-    private sealed class ReadOnlyRequestFeatures : IHttpRequestFeature, IHttpRequestBodyDetectionFeature
+    private sealed class ReadOnlyRequestFeatures : IHttpRequestFeature, IHttpRequestBodyDetectionFeature, IHttpResponseFeature
     {
         private readonly IFeatureCollection _features;
+        private readonly IHttpResponseFeature _response;
 
         private FeatureReference<IHttpRequestFeature> _request = FeatureReference<IHttpRequestFeature>.Default;
         private IHeaderDictionary? _requestHeaders;
 
-        public ReadOnlyRequestFeatures(IFeatureCollection features)
+        public ReadOnlyRequestFeatures(IFeatureCollection features, IHttpResponseFeature response)
         {
             _features = features;
-        }
-
-        public static void Add(HttpContext source, HttpContext destination)
-        {
-            var instance = new ReadOnlyRequestFeatures(source.Features);
-
-            destination.Features.Set<IHttpRequestFeature>(instance);
-            destination.Features.Set<IHttpRequestBodyDetectionFeature>(instance);
+            _response = response;
         }
 
         private IHttpRequestFeature RequestFeature => _request.Fetch(_features)!;
@@ -146,6 +145,44 @@ internal sealed class CheckedForwarderFeature : ICheckedForwarderFeature
         {
             get => RequestFeature.Body;
             set => throw new NotImplementedException();
+        }
+
+        int IHttpResponseFeature.StatusCode
+        {
+            get => _response.StatusCode;
+            set => _response.StatusCode = value;
+        }
+
+        string? IHttpResponseFeature.ReasonPhrase
+        {
+            get => _response.ReasonPhrase;
+            set => _response.ReasonPhrase = value;
+        }
+
+        IHeaderDictionary IHttpResponseFeature.Headers
+        {
+            get => _response.Headers;
+            set => _response.Headers = value;
+        }
+
+        [Obsolete]
+        Stream IHttpResponseFeature.Body
+        {
+            get => _response.Body;
+            set => _response.Body = value;
+        }
+
+        bool IHttpResponseFeature.HasStarted => _response.HasStarted;
+
+        void IHttpResponseFeature.OnCompleted(Func<object, Task> callback, object state)
+        {
+            // We intentionally on redirect these calls to the original context so that things like RegisterDispose work
+            _features.GetRequiredFeature<IHttpResponseFeature>().OnCompleted(callback, state);
+        }
+
+        void IHttpResponseFeature.OnStarting(Func<object, Task> callback, object state)
+        {
+            _response.OnStarting(callback, state);
         }
     }
 }

@@ -30,6 +30,7 @@ public static class ContextComparerExtensions
 
     public static void CompareBody<T>(this IContextComparerBuilder builder, IEqualityComparer<T> comparer, JsonSerializerOptions? options = null)
     {
+        // TODO: Should we mimic settings from MVC or minimal APIs?
         options ??= new JsonSerializerOptions()
         {
             PropertyNameCaseInsensitive = true,

@@ -21,11 +21,11 @@ flowchart TD
     A[Request Initialized] --> B(Has ICheckedForwarderMetadata)
     B -->|Yes| C(Create ICheckedForwarderFeature)
     B -->|No| D(Resume middleware)
-    C --> E(Run ICheckedForwarderMetadata.Request)
+    C --> E(Run ICheckedForwarderMetadata.Request and .Comparison)
     E --> D
     D --> F(Has ICheckedForwarderFeature)
     F -->|No| G(Resume middleware)
-    F -->|Yes| H(Run ICheckedForwarderMetadata.Comparison)
+    F -->|Yes| H(Run ICheckedForwarderFeature.CompareAsync())
     H --> G
     G --> J(Request Completed)
 ```
@@ -48,6 +48,9 @@ app.Map("/", () => "Hello world!")
     .WithCheckedForwarder("http://localhost:5276", builder =>
     {
         // Build a pipeline of actions to initialize the forwarded request, as well as compare the requests
+
+         // Add a check to short circuit forwarding
+        builder.UseWhen(ctx => ValueTask.FromResult(true));
         
         // Verify status codes are the same
         builder.UseStatusCodes();
@@ -58,10 +61,13 @@ app.Map("/", () => "Hello world!")
             headers.IgnoreDefault();
         });
 
-        // Compare forwarded and local body to ensure an exact byte-level match
+        // Ensure response body is available via IMemoryResponseBodyFeature
+        builder.UseResponseBuffering();
+
+        // Compare forwarded and local body to ensure an exact byte-level match (will call .UseResponseBuffering() if not already called)
         builder.UseBody();
 
-        // or supply a type and it will deserialize and use the default (or supplied) equality comparer
+        // or supply a type and it will deserialize and use the default (or supplied) equality comparer (will call .UseResponseBuffering() if not already called)
         builder.UseJsonBody<SomeType>();
     });
 ```
@@ -70,19 +76,6 @@ This adds the feature `ICheckedForwarderFeature` that is used to track how to fo
 
 - If you decide later in the pipeline not to run the forwarder and comparison, remove `ICheckedForwarderFeature` from the feature collection
 - If you want to decide when to run the forwarder, call `ICheckedForwarderFeature.ForwardAsync()` at the appropriate time; otherwise, it will run after the main request is processed
-- If you want to control when the forwarder is applied, you may do so similarly to the following:
-
-    ```csharp
-
-    app.Map("/", () => "Hello world!")
-        .WithCheckedForwarder("http://localhost:5276", builder =>
-        {
-            // Build a pipeline of actions to initialize the forwarded request, as well as compare the requests
-            builder.UseWhen(ctx => /* some enable check */);
-            
-            // Other actions
-        });
-    ```
-- Body comparisons should use `IMemoryResponseBodyFeature` by enabling it either indirectly via one of the existing comparisons, or by manually calling `IContextComparerBuilder.BufferResponseToMemory`. Built in mechanisms are the following:
+- Body comparisons should use `IMemoryResponseBodyFeature` by enabling it either indirectly via one of the existing comparisons, or by manually calling `IContextComparerBuilder.UseResponseBuffering()`. Built in mechanisms are the following:
     - `UseBody`: Validates that it is equal at the byte level
     - `UseJsonBody<T>`: Deserializes a JSON payload for type `T` and uses the supplied comparer or the default one if none is given.

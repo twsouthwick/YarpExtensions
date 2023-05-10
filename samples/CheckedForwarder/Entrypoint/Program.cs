@@ -23,20 +23,25 @@ const string Destination = "http://localhost:5276";
 app.Map("/", () => "Hello world!")
     .WithCheckedForwarder(Destination, builder =>
     {
-        builder.IgnoreDefaultHeaders();
-        builder.CompareHeaders();
-        builder.CompareStatusCodes();
-        builder.CompareBodyBytes();
+        builder.UseWhen(ctx => ValueTask.FromResult(true));
+        builder.UseStatusCode();
+        builder.UseHeaders(context =>
+        {
+            context.IgnoreDefaultHeaders();
+        });
+        builder.UseBody();
     });
 
 // Manually writing to ensure formatting is different
 var bodyComparisonGroup = app.MapGroup("/obj")
   .WithCheckedForwarder(Destination, builder =>
   {
-      builder.IgnoreDefaultHeaders();
-      builder.CompareHeaders();
-      builder.CompareStatusCodes();
-      builder.CompareBody<ResultObj>();
+      builder.UseStatusCode();
+      builder.UseHeaders(context =>
+      {
+          context.IgnoreDefaultHeaders();
+      });
+      builder.UseBody<ResultObj>();
   });
 
 

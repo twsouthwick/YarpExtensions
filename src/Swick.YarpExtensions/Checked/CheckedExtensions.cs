@@ -26,7 +26,7 @@ public static class CheckedExtensions
             {
                 var contextBuilder = new ContextComparerBuilder(destination, builder.ApplicationServices);
 
-                contextBuilder.CheckIfForwarderSucceeded();
+                contextBuilder.UseForwarderChecks();
 
                 configure(contextBuilder);
 

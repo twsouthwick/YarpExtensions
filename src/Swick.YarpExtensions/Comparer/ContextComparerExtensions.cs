@@ -10,7 +10,7 @@ namespace Swick.YarpExtensions;
 
 public static class ContextComparerExtensions
 {
-    public static void IsEnabledWhen(this IContextComparerBuilder builder, Func<HttpContext, ValueTask<bool>> predicate)
+    public static void UseWhen(this IContextComparerBuilder builder, Func<HttpContext, ValueTask<bool>> predicate)
     {
         builder.Request.Use(async (ctx, next) =>
         {
@@ -25,7 +25,7 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void CompareBody<T>(this IContextComparerBuilder builder)
+    public static void UseBody<T>(this IContextComparerBuilder builder)
         => builder.CompareBody<T>(EqualityComparer<T>.Default);
 
     public static void CompareBody<T>(this IContextComparerBuilder builder, IEqualityComparer<T> comparer, JsonSerializerOptions? options = null)
@@ -36,7 +36,7 @@ public static class ContextComparerExtensions
             PropertyNameCaseInsensitive = true,
         };
 
-        builder.BufferResponseToMemory();
+        builder.UseResponseBuffering();
 
         builder.Comparison.UseForwardedContext((context, forwarded) =>
         {
@@ -53,7 +53,7 @@ public static class ContextComparerExtensions
         });
     }
 
-    internal static void CheckIfForwarderSucceeded(this IContextComparerBuilder builder)
+    internal static void UseForwarderChecks(this IContextComparerBuilder builder)
     {
         builder.Comparison.Use(async (ctx, next) =>
         {
@@ -81,7 +81,10 @@ public static class ContextComparerExtensions
     /// <summary>
     /// Enables use of <see cref="IMemoryResponseBodyFeature"/> to access response.
     /// </summary>
-    public static void BufferResponseToMemory(this IContextComparerBuilder builder)
+    /// <remarks>
+    /// May be called multiple times, but will be inserted only on the first call.
+    /// </remarks>
+    public static void UseResponseBuffering(this IContextComparerBuilder builder)
     {
         const string Key = "bufferResponse";
 
@@ -115,9 +118,12 @@ public static class ContextComparerExtensions
         return false;
     }
 
-    public static void CompareBodyBytes(this IContextComparerBuilder builder)
+    /// <summary>
+    /// Adds comparison for the response body by comparing bytes
+    /// </summary>
+    public static void UseBody(this IContextComparerBuilder builder)
     {
-        builder.BufferResponseToMemory();
+        builder.UseResponseBuffering();
 
         builder.Comparison.UseForwardedContext((context, forwarded) =>
         {
@@ -131,46 +137,20 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void IgnoreHeaders(this IContextComparerBuilder builder, params string[] headers)
+    public static void IgnoreDefaultHeaders(this HeaderComparisonContext context)
     {
-        var set = builder.GetIgnoredHeaders();
-
-        set.UnionWith(headers);
-
-        builder.CompareHeaders();
+        context.Ignore.Add(HeaderNames.TransferEncoding);
+        context.Ignore.Add(HeaderNames.Server);
+        context.Ignore.Add(HeaderNames.Date);
     }
 
-    public static void IgnoreDefaultHeaders(this IContextComparerBuilder builder)
-        => builder.IgnoreHeaders(
-            HeaderNames.TransferEncoding,
-            HeaderNames.Server,
-            HeaderNames.Date);
+    public static void UseHeaders(this IContextComparerBuilder builder)
+        => builder.UseHeaders(static _ => { });
 
-    private static HashSet<string> GetIgnoredHeaders(this IContextComparerBuilder builder)
+    public static void UseHeaders(this IContextComparerBuilder builder, Action<HeaderComparisonContext> configure)
     {
-        const string IgnoredKey = "IgnoredHeaders";
-
-        if (builder.Comparison.Properties.TryGetValue(IgnoredKey, out var ignored) && ignored is HashSet<string> set)
-        {
-            return set;
-        }
-
-        set = new();
-        builder.Comparison.Properties[IgnoredKey] = set;
-        return set;
-    }
-
-    public static void CompareHeaders(this IContextComparerBuilder builder)
-    {
-        const string CompareAddedKey = "compareAdded";
-
-        if (builder.Comparison.Properties.ContainsKey(CompareAddedKey))
-        {
-            return;
-        }
-
-        builder.Comparison.Properties[CompareAddedKey] = true;
-        var ignored = builder.GetIgnoredHeaders();
+        var headers = new HeaderComparisonContext();
+        configure(headers);
 
         builder.Comparison.UseForwardedContext((context, forwarded) =>
         {
@@ -178,7 +158,7 @@ public static class ContextComparerExtensions
 
             foreach (var (name, value) in context.Response.Headers)
             {
-                if (ignored.Contains(name))
+                if (headers.Ignore.Contains(name))
                 {
                     continue;
                 }
@@ -200,7 +180,7 @@ public static class ContextComparerExtensions
 
             foreach (var (name, _) in forwarded.Context.Response.Headers)
             {
-                if (ignored.Contains(name))
+                if (headers.Ignore.Contains(name))
                 {
                     continue;
                 }
@@ -213,7 +193,7 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void CompareStatusCodes(this IContextComparerBuilder builder)
+    public static void UseStatusCode(this IContextComparerBuilder builder)
     {
         builder.Comparison.UseForwardedContext((main, forwarded) =>
         {
@@ -226,14 +206,14 @@ public static class ContextComparerExtensions
 
     private static void UseForwardedContext(this IApplicationBuilder builder, Action<HttpContext, ICheckedForwarderFeature> action)
     {
-        builder.Use(async (ctx, next) =>
+        builder.Use((ctx, next) =>
         {
-            await next(ctx);
-
             if (ctx.Features.Get<ICheckedForwarderFeature>() is { } feature)
             {
                 action(ctx, feature);
             }
+
+            return next(ctx);
         });
     }
 }

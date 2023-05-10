@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Swick.YarpExtensions.Comparer;
 using Swick.YarpExtensions.Features;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Yarp.ReverseProxy.Forwarder;
 
@@ -86,20 +87,27 @@ public static class ContextComparerExtensions
     /// </remarks>
     public static void UseResponseBuffering(this IContextComparerBuilder builder)
     {
-        const string Key = "bufferResponse";
-
-        if (builder.Request.Properties.ContainsKey(Key))
+        if (builder.Request.HasBeenAdded())
         {
             return;
         }
-
-        builder.Request.Properties[Key] = true;
 
         builder.Request.UseForwardedContext((ctx, forwarded) =>
         {
             ctx.Response.BufferResponseStreamToMemory();
             forwarded.Context.Response.BufferResponseStreamToMemory();
         });
+    }
+
+    private static bool HasBeenAdded(this IApplicationBuilder builder, [CallerMemberName] string key = null!)
+    {
+        if (builder.Properties.ContainsKey(key))
+        {
+            return true;
+        }
+
+        builder.Properties[key] = true;
+        return false;
     }
 
     private static bool TryGetMemory(HttpContext context, ICheckedForwarderFeature forwarded, out ReadOnlyMemory<byte> localBytes, out ReadOnlyMemory<byte> forwardedBytes)

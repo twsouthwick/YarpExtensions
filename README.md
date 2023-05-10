@@ -38,11 +38,13 @@ app.UseRouting();
 
 // Additional middleware
 
+// Query for ICheckedForwarderMetadata and add ICheckedForwarderFeature
 app.UseCheckedForwarder();
 
 // Additional middleware
 
 app.Map("/", () => "Hello world!")
+    // Add ICheckedForwarderMetadata
     .WithCheckedForwarder("http://localhost:5276", builder =>
     {
         // Build a pipeline of actions to initialize the forwarded request, as well as compare the requests

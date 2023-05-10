@@ -25,7 +25,7 @@ flowchart TD
     E --> D
     D --> F(Has ICheckedForwarderFeature)
     F -->|No| G(Resume middleware)
-    F -->|Yes| H(Run ICheckedForwarderFeature.CompareAsync())
+    F -->|Yes| H(Run ICheckedForwarderFeature.CompareAsync)
     H --> G
     G --> J(Request Completed)
 ```

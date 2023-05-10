@@ -25,10 +25,10 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void UseBody<T>(this IContextComparerBuilder builder)
-        => builder.CompareBody<T>(EqualityComparer<T>.Default);
+    public static void UseJsonBody<T>(this IContextComparerBuilder builder)
+        => builder.UseJsonBody<T>(EqualityComparer<T>.Default);
 
-    public static void CompareBody<T>(this IContextComparerBuilder builder, IEqualityComparer<T> comparer, JsonSerializerOptions? options = null)
+    public static void UseJsonBody<T>(this IContextComparerBuilder builder, IEqualityComparer<T> comparer, JsonSerializerOptions? options = null)
     {
         // TODO: Should we mimic settings from MVC or minimal APIs?
         options ??= new JsonSerializerOptions()

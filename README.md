@@ -38,7 +38,7 @@ app.Map("/", () => "Hello world!")
         builder.UseBody();
 
         // or supply a type and it will deserialize and use the default (or supplied) equality comparer
-        builder.UseBody<SomeType>();
+        builder.UseJsonBody<SomeType>();
     });
 ```
 

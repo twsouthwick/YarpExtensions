@@ -41,7 +41,7 @@ var bodyComparisonGroup = app.MapGroup("/obj")
       {
           context.IgnoreDefault();
       });
-      builder.UseBody<ResultObj>();
+      builder.UseJsonBody<ResultObj>();
   });
 
 

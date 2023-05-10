@@ -60,5 +60,5 @@ This adds the feature `ICheckedForwarderFeature` that is used to track how to fo
         });
     ```
 - Body comparisons should use `IMemoryResponseBodyFeature` by enabling it either indirectly via one of the existing comparisons, or by manually calling `IContextComparerBuilder.BufferResponseToMemory`. Built in mechanisms are the following:
-    - `CompareBodyBytes`: Validates that it is equal at the byte level
-    - `CompareBody<T>`: Deserializes a JSON payload for type `T` and uses the supplied comparer or the default one if none is given.
+    - `UseBody`: Validates that it is equal at the byte level
+    - `UseJsonBody<T>`: Deserializes a JSON payload for type `T` and uses the supplied comparer or the default one if none is given.

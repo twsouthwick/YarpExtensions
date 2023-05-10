@@ -8,6 +8,28 @@ These are a collection of extensions to facillitate migration with YARP using th
 
 This is an extension that uses the `IHttpForwarder` to process a request both locally and remotely and provides a flexible comparison system. This enables testing in production of migrated endpoints to validate the request generated on the new ASP.NET Core application with the legacy ASP.NET Framework application.
 
+
+Abstractions used:
+
+- [ICheckedForwarderMetadata](src\Swick.YarpExtensions\Checked\ICheckedForwarderMetadata.cs)
+- [ICheckedForwarderFeature](src\Swick.YarpExtensions\Features\ICheckedForwarderFeature.cs)
+
+The general flow of this is as follows:
+
+```mermaid
+flowchart TD
+    A[Request Initialized] --> B(Has ICheckedForwarderMetadata)
+    B -->|Yes| C(Create ICheckedForwarderFeature)
+    B -->|No| D(Resume middleware)
+    C --> E(Run ICheckedForwarderMetadata.Request)
+    E --> D
+    D --> F(Has ICheckedForwarderFeature)
+    F -->|No| G(Resume middleware)
+    F -->|Yes| H(Run ICheckedForwarderMetadata.Comparison)
+    H --> G
+    G --> J(Request Completed)
+```
+
 To use this, add the middleware and then register endpoints to be forwarded with a call to `.WithCheckedForwarder` as shown below:
 
 ```csharp

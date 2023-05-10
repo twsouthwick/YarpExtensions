@@ -25,9 +25,9 @@ app.Map("/", () => "Hello world!")
     {
         builder.UseWhen(ctx => ValueTask.FromResult(true));
         builder.UseStatusCode();
-        builder.UseHeaders(context =>
+        builder.UseHeaders(headers =>
         {
-            context.IgnoreDefault();
+            headers.IgnoreDefault();
         });
         builder.UseBody();
     });
@@ -37,9 +37,9 @@ var bodyComparisonGroup = app.MapGroup("/obj")
   .WithCheckedForwarder(Destination, builder =>
   {
       builder.UseStatusCode();
-      builder.UseHeaders(context =>
+      builder.UseHeaders(headers =>
       {
-          context.IgnoreDefault();
+          headers.IgnoreDefault();
       });
       builder.UseJsonBody<ResultObj>();
   });

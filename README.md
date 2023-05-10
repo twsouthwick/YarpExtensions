@@ -24,10 +24,21 @@ app.Map("/", () => "Hello world!")
     .WithCheckedForwarder("http://localhost:5276", builder =>
     {
         // Build a pipeline of actions to initialize the forwarded request, as well as compare the requests
-        builder.IgnoreDefaultHeaders();
-        builder.CompareHeaders();
-        builder.CompareStatusCodes();
-        builder.CompareBodyBytes();
+        
+        // Verify status codes are the same
+        builder.UseStatusCodes();
+
+        // Verify headers - can customize what that means
+        builder.UseHeaders(headers =>
+        {
+            headers.IgnoreDefault();
+        });
+
+        // Compare forwarded and local body to ensure an exact byte-level match
+        builder.UseBody();
+
+        // or supply a type and it will deserialize and use the default (or supplied) equality comparer
+        builder.UseBody<SomeType>();
     });
 ```
 
@@ -43,7 +54,7 @@ This adds the feature `ICheckedForwarderFeature` that is used to track how to fo
         .WithCheckedForwarder("http://localhost:5276", builder =>
         {
             // Build a pipeline of actions to initialize the forwarded request, as well as compare the requests
-            builder.IsEnabledWhen(ctx => /* some enable check */);
+            builder.UseWhen(ctx => /* some enable check */);
             
             // Other actions
         });

@@ -27,7 +27,7 @@ app.Map("/", () => "Hello world!")
         builder.UseStatusCode();
         builder.UseHeaders(context =>
         {
-            context.IgnoreDefaultHeaders();
+            context.IgnoreDefault();
         });
         builder.UseBody();
     });
@@ -39,7 +39,7 @@ var bodyComparisonGroup = app.MapGroup("/obj")
       builder.UseStatusCode();
       builder.UseHeaders(context =>
       {
-          context.IgnoreDefaultHeaders();
+          context.IgnoreDefault();
       });
       builder.UseBody<ResultObj>();
   });

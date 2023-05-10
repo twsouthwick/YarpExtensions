@@ -137,7 +137,7 @@ public static class ContextComparerExtensions
         });
     }
 
-    public static void IgnoreDefaultHeaders(this HeaderComparisonContext context)
+    public static void IgnoreDefault(this HeaderComparisonContext context)
     {
         context.Ignore.Add(HeaderNames.TransferEncoding);
         context.Ignore.Add(HeaderNames.Server);

@@ -173,16 +173,16 @@ public static class ContextComparerExtensions
 
                 visited.Add(name);
 
-                if (forwarded.Context.Response.Headers.TryGetValue(name, out var fromYarp))
+                if (forwarded.Context.Response.Headers.TryGetValue(name, out var fromForwarded))
                 {
-                    if (!value.Equals(fromYarp))
+                    if (!value.Equals(fromForwarded))
                     {
                         forwarded.Logger.LogWarning("Values for header '{HeaderName}' do not match", name);
                     }
                 }
                 else
                 {
-                    forwarded.Logger.LogWarning("Local contains '{HeaderName}' while YARP does not", name);
+                    forwarded.Logger.LogWarning("Local contains '{HeaderName}' while forwarded response does not", name);
                 }
             }
 
@@ -195,7 +195,7 @@ public static class ContextComparerExtensions
 
                 if (!visited.Contains(name))
                 {
-                    forwarded.Logger.LogWarning("YARP result contains '{HeaderName}' while local does not", name);
+                    forwarded.Logger.LogWarning("Forwarded response contains '{HeaderName}' while local does not", name);
                 }
             }
         });
@@ -207,7 +207,7 @@ public static class ContextComparerExtensions
         {
             if (main.Response.StatusCode != forwarded.Context.Response.StatusCode)
             {
-                forwarded.Logger.LogWarning("Status code for YARP {YarpStatus} is not the same as local {LocalStatus}", main.Response.StatusCode, forwarded.Context.Response.StatusCode);
+                forwarded.Logger.LogWarning("Status code for forwarded request {ForwardedStatus} is not the same as local {LocalStatus}", main.Response.StatusCode, forwarded.Context.Response.StatusCode);
             }
         });
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Swick.YarpExtensions.Checked;
 using Swick.YarpExtensions.Features;
 
@@ -8,11 +9,13 @@ internal sealed class CheckedForwarderMiddleware : IDisposable
 {
     private readonly RequestDelegate _next;
     private readonly CheckedForwarder _forwarder;
+    private readonly ILogger<CheckedForwarderMiddleware> _logger;
 
-    public CheckedForwarderMiddleware(RequestDelegate next, IServiceProvider services)
+    public CheckedForwarderMiddleware(RequestDelegate next, IServiceProvider services, ILogger<CheckedForwarderMiddleware> logger)
     {
         _next = next;
         _forwarder = ActivatorUtilities.CreateInstance<CheckedForwarder>(services);
+        _logger = logger;
     }
 
     public Task InvokeAsync(HttpContext context)
@@ -38,7 +41,14 @@ internal sealed class CheckedForwarderMiddleware : IDisposable
         // Retrieve it in case someone overwrote it
         if (context.Features.Get<ICheckedForwarderFeature>() is { } comparisonFeature)
         {
-            await comparisonFeature.CompareAsync();
+            try
+            {
+                await comparisonFeature.CompareAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Unexpected error while comparing forwarded request.");
+            }
         }
     }
 
